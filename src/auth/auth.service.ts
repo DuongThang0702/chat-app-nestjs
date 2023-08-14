@@ -5,6 +5,7 @@ import { Services } from 'src/utility/contants';
 import { LoginDto } from './dto';
 import { compare } from 'bcrypt';
 import { Types } from 'mongoose';
+import { hashSomthing } from 'src/utility/helper';
 
 @Injectable()
 export class AuthService {
@@ -32,11 +33,30 @@ export class AuthService {
     );
 
     const refreshToken = await this.generateRefreshToken(matchedUser.email);
-
+    const hashRf = await hashSomthing(refreshToken);
+    await this.userService.updateOne(
+      { email: matchedUser.email },
+      { refresh_token: hashRf },
+    );
     return {
       accessToken,
       refreshToken,
     };
+  }
+
+  async refreshToken(userDetail, rf: string): Promise<{ accessToken: string }> {
+    const user = await this.userService.findUser({ email: userDetail.email });
+    if (!user) throw new HttpException('invalid user', HttpStatus.UNAUTHORIZED);
+    const matchedRf = await compare(rf, user.refresh_token);
+    if (!matchedRf)
+      throw new HttpException('required login', HttpStatus.UNAUTHORIZED);
+    const accessToken = await this.generateAccessToken(
+      user.email,
+      user._id,
+      user.lastname,
+      user.firstname,
+    );
+    return { accessToken };
   }
 
   async generateAccessToken(

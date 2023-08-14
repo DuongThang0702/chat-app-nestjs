@@ -19,6 +19,9 @@ export class User {
 
   @Prop()
   avatar: string;
+
+  @Prop({ default: null })
+  refresh_token: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -8,8 +8,4 @@ export class LoginDto {
 
   @IsNotEmpty()
   password: string;
-
-  accessToken: string;
-
-  refreshToken: string;
 }

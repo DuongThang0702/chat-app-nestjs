@@ -23,4 +23,11 @@ export class UserService {
     const user = await this.userModel.findOne(param);
     return user;
   }
+
+  async updateOne(filter, param) {
+    const user = await this.userModel.findOneAndUpdate(filter, param, {
+      new: true,
+    });
+    return user;
+  }
 }
