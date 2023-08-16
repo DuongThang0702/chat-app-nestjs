@@ -11,7 +11,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
-import { Routes, Services } from 'src/utility/contants';
+import { Routes, Services } from 'src/utils/contants';
 import { CurrentDto, LoginDto, RegisterDto } from './dto';
 import { plainToInstance } from 'class-transformer';
 import { AuthService } from './auth.service';

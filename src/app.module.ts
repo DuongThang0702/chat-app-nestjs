@@ -18,7 +18,7 @@ import { UserModule } from './user/user.module';
       },
       template: {
         dir: join(__dirname, 'templates/email'),
-        adapter: new HandlebarsAdapter(), // or new PugAdapter() or new EjsAdapter()
+        adapter: new HandlebarsAdapter(),
         options: {
           strict: true,
         },
