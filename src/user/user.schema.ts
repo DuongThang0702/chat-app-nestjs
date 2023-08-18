@@ -1,9 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
+import { Conversation } from 'src/conversation/conversation.schema';
 
 export type UserDocument = HydratedDocument<User>;
 
-@Schema()
+@Schema({ timestamps: true })
 export class User {
   @Prop({ unique: true })
   email: string;
@@ -22,6 +23,11 @@ export class User {
 
   @Prop({ default: null })
   refresh_token: string;
+
+  @Prop({
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Conversation' }],
+  })
+  conversation: Conversation[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

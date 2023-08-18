@@ -22,6 +22,7 @@ export class AuthService {
     if (!matchedUser)
       throw new HttpException('user not found', HttpStatus.BAD_REQUEST);
     const checkPass = await compare(payload.password, matchedUser.password);
+
     if (!checkPass)
       throw new HttpException('Wrong password !', HttpStatus.BAD_REQUEST);
 
@@ -39,7 +40,7 @@ export class AuthService {
       { refresh_token: hashRf },
     );
     return {
-      accessToken,
+      accessToken: `Bearer ${accessToken}`,
       refreshToken,
     };
   }
