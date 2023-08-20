@@ -8,3 +8,8 @@ export type AuthenticatedDecode = {
 export interface AuthenticatedRequest extends Request {
   user: AuthenticatedDecode;
 }
+
+export type PayloadCreateMessage = {
+  content: string;
+  IdConversation: string;
+};
