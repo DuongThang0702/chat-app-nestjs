@@ -1,11 +1,11 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Conversation } from './conversation.schema';
+import { Conversation } from '../utils/schema/';
 import { Model, Types } from 'mongoose';
 import { CreateConversationDto } from './dto';
 import { Services } from 'src/utils/contants';
 import { UserService } from 'src/user/user.service';
-import { User } from 'src/user/type';
+import { AuthenticatedDecode } from 'src/utils/types';
 
 @Injectable()
 export class ConversationService {
@@ -15,21 +15,23 @@ export class ConversationService {
     @Inject(Services.USER_SERVICE)
     private readonly userService: UserService,
   ) {}
-  async create(author: User, payload: CreateConversationDto) {
-    if (author.email === payload.email)
+
+  async create(author: AuthenticatedDecode, payload: CreateConversationDto) {
+    if (author.email === payload.recipient)
       throw new HttpException(
         'Cannot create Conversation with yourself',
         HttpStatus.BAD_REQUEST,
       );
 
     const recipient = await this.userService.findUser({
-      email: payload.email,
+      email: payload.recipient,
     });
 
     if (!recipient)
       throw new HttpException('recipient not found', HttpStatus.BAD_REQUEST);
 
-    const exists = await this.isCreated(author._id, recipient._id);
+    const exists = await this.isCreated(author._id, recipient._id.toString());
+
     if (exists)
       throw new HttpException(
         'Conversation Already Exists',
@@ -43,17 +45,46 @@ export class ConversationService {
     return await newConversation.save();
   }
 
-  async isCreated(creator: Types.ObjectId, recipient: Types.ObjectId) {
-    return await this.conversationModel.find({
-      where: [
+  async findById(_id: string, user: AuthenticatedDecode) {
+    const isValidObjectId = Types.ObjectId.isValid(_id);
+    if (!isValidObjectId)
+      throw new HttpException('invalid id', HttpStatus.BAD_REQUEST);
+    const response = await this.conversationModel.findOne({
+      $and: [
+        { _id },
         {
-          creator: { _id: creator },
-          recipient: { _id: recipient },
+          $or: [
+            { creator: { _id: user._id } },
+            { recipient: { _id: user._id } },
+          ],
         },
-        {
-          creator: { id: recipient },
-          recipient: { id: creator },
-        },
+      ],
+    });
+    if (!response)
+      throw new HttpException('conversation not found', HttpStatus.BAD_REQUEST);
+
+    return response;
+  }
+
+  async find(user: AuthenticatedDecode) {
+    const findConversation = await this.conversationModel
+      .find({
+        $or: [{ creator: { _id: user._id } }, { recipient: { _id: user._id } }],
+      })
+      .populate({ path: 'creator', select: '-password' })
+      .populate({ path: 'recipient', select: '-password' });
+
+    if (!findConversation)
+      throw new HttpException('conversation not found', HttpStatus.BAD_REQUEST);
+
+    return findConversation;
+  }
+
+  async isCreated(creator: string, recipient: string) {
+    return await this.conversationModel.findOne({
+      $or: [
+        { creator: { _id: creator }, recipient: { _id: recipient } },
+        { creator: { _id: recipient }, recipient: { _id: creator } },
       ],
     });
   }

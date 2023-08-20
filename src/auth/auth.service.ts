@@ -6,6 +6,7 @@ import { LoginDto } from './dto';
 import { compare } from 'bcrypt';
 import { Types } from 'mongoose';
 import { hashSomthing } from 'src/utils/helper';
+import { AuthenticatedDecode } from 'src/utils/types';
 
 @Injectable()
 export class AuthService {
@@ -45,7 +46,10 @@ export class AuthService {
     };
   }
 
-  async refreshToken(userDetail, rf: string): Promise<{ accessToken: string }> {
+  async refreshToken(
+    userDetail: AuthenticatedDecode,
+    rf: string,
+  ): Promise<{ accessToken: string }> {
     const user = await this.userService.findUser({ email: userDetail.email });
     if (!user) throw new HttpException('invalid user', HttpStatus.UNAUTHORIZED);
     const matchedRf = await compare(rf, user.refresh_token);

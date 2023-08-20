@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
-import { Conversation } from 'src/conversation/conversation.schema';
+import { HydratedDocument } from 'mongoose';
+import { Message } from './message.schema';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -24,10 +24,8 @@ export class User {
   @Prop({ default: null })
   refresh_token: string;
 
-  @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Conversation' }],
-  })
-  conversation: Conversation[];
+  @Prop()
+  Message: Message[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

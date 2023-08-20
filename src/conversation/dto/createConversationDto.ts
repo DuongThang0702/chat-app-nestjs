@@ -5,7 +5,7 @@ export class CreateConversationDto {
   @IsNotEmpty()
   @Expose()
   @IsEmail()
-  email: string;
+  recipient: string;
 
   @IsNotEmpty()
   @Expose()

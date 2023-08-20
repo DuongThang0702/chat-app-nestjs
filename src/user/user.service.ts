@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { User } from './user.schema';
+import { User } from '../utils/schema/';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { RegisterDto } from 'src/auth/dto';
@@ -24,7 +24,7 @@ export class UserService {
     return user;
   }
 
-  async updateOne(filter, param) {
+  async updateOne(filter: object, param: object) {
     const user = await this.userModel.findOneAndUpdate(filter, param, {
       new: true,
     });
