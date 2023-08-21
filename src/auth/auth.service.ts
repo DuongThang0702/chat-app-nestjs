@@ -91,4 +91,15 @@ export class AuthService {
     );
     return refreshToken;
   }
+
+  async logOut(userDetail: AuthenticatedDecode, refresh_token: string) {
+    const user = await this.userService.findUser({ email: userDetail.email });
+    if (!user)
+      throw new HttpException('user not found', HttpStatus.BAD_REQUEST);
+    const isValidToken = await compare(refresh_token, user.refresh_token);
+    if (!isValidToken)
+      throw new HttpException('requires login', HttpStatus.UNAUTHORIZED);
+    user.refresh_token = null;
+    return await user.save();
+  }
 }

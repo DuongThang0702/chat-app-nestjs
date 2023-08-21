@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { Message } from './message.schema';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -26,9 +25,6 @@ export class User {
 
   @Prop({ default: null })
   refresh_token: string;
-
-  @Prop()
-  Message: Message[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

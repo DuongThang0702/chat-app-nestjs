@@ -9,6 +9,7 @@ import {
   Req,
   HttpException,
   HttpStatus,
+  Delete,
 } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { Routes, Services } from 'src/utils/contants';
@@ -16,6 +17,7 @@ import { CurrentDto, LoginDto, RegisterDto } from './dto';
 import { plainToInstance } from 'class-transformer';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt.guard';
+import { AuthenticatedRequest } from 'src/utils/types';
 
 @Controller(Routes.AUTH)
 export class AuthController {
@@ -51,12 +53,31 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('current')
-  async current(@Req() req) {
+  async current(@Req() req: AuthenticatedRequest) {
     if (!req.user)
       throw new HttpException('invalid cookie', HttpStatus.UNAUTHORIZED);
     const findUser = await this.userService.findUser({ email: req.user.email });
     return plainToInstance(CurrentDto, findUser, {
       excludeExtraneousValues: true,
     });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete()
+  async logOut(@Req() req, @Res() res) {
+    const cookie = req.cookies;
+    if (!cookie || !cookie.refreshToken)
+      throw new HttpException('No token on cookie', HttpStatus.UNAUTHORIZED);
+    const response = await this.authService.logOut(
+      req.user,
+      cookie.refreshToken,
+    );
+    if (!response)
+      throw new HttpException(
+        'Something went wrong',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    res.clearCookie('refreshToken');
+    res.status(200).json({ message: 'logout success!' });
   }
 }

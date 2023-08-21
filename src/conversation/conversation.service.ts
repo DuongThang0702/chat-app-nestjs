@@ -71,8 +71,8 @@ export class ConversationService {
       .find({
         $or: [{ creator: { _id: user._id } }, { recipient: { _id: user._id } }],
       })
-      .populate({ path: 'creator', select: '-password' })
-      .populate({ path: 'recipient', select: '-password' });
+      .populate({ path: 'creator', select: '-password -refresh_token' })
+      .populate({ path: 'recipient', select: '-password -refresh_token' });
 
     if (!findConversation)
       throw new HttpException('conversation not found', HttpStatus.BAD_REQUEST);

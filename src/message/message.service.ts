@@ -2,8 +2,9 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Conversation, Message } from 'src/utils/schema';
-import { AuthenticatedDecode, PayloadCreateMessage } from 'src/utils/types';
+import { AuthenticatedDecode } from 'src/utils/types';
 import { createMessage } from './dto';
+import { ParamGetMessageFromConversation } from './dto/getMessageFromConversation';
 
 @Injectable()
 export class MessageService {
@@ -41,10 +42,25 @@ export class MessageService {
       payload.IdConversation,
       {
         $push: { message: response },
+        lastMessage: payload.content,
       },
       { new: true },
     );
 
     return response;
+  }
+
+  async getMessageFromConversation(param: string) {
+    const isValidObjectId = Types.ObjectId.isValid(param);
+    if (!isValidObjectId)
+      throw new HttpException('invalid idConversation', HttpStatus.NOT_FOUND);
+    const messages = await this.messageModel
+      .find({ idConversation: param })
+      .sort({ createdAt: 'desc' });
+
+    if (!messages)
+      throw new HttpException('conversation not found', HttpStatus.BAD_REQUEST);
+
+    return messages;
   }
 }
