@@ -4,7 +4,6 @@ import { Model, Types } from 'mongoose';
 import { Conversation, Message } from 'src/utils/schema';
 import { AuthenticatedDecode } from 'src/utils/types';
 import { createMessage } from './dto';
-import { ParamGetMessageFromConversation } from './dto/getMessageFromConversation';
 
 @Injectable()
 export class MessageService {
@@ -19,17 +18,29 @@ export class MessageService {
     if (!isValidId)
       throw new HttpException('invalid id', HttpStatus.BAD_REQUEST);
 
-    const conversation = await this.conversationModel.findById(
-      payload.IdConversation,
-    );
-    if (!conversation)
-      throw new HttpException('conversation not found', HttpStatus.BAD_REQUEST);
+    const conversation = await this.conversationModel.findOne({
+      $and: [
+        { _id: payload.IdConversation },
+        {
+          $or: [
+            { creator: { _id: user._id } },
+            { recipient: { _id: user._id } },
+          ],
+        },
+      ],
+    });
 
-    if (
-      conversation.creator._id.toString() !== user._id &&
-      conversation.recipient._id.toString() !== user._id
-    )
-      throw new HttpException('cannot create message', HttpStatus.BAD_REQUEST);
+    if (!conversation)
+      throw new HttpException(
+        'conversation not found or cannot create message',
+        HttpStatus.BAD_REQUEST,
+      );
+
+    // if (
+    //   conversation.creator._id.toString() !== user._id &&
+    //   conversation.recipient._id.toString() !== user._id
+    // )
+    //   throw new HttpException('cannot create message', HttpStatus.BAD_REQUEST);
 
     const newMessage = new this.messageModel({
       author: user._id,
@@ -42,7 +53,7 @@ export class MessageService {
       payload.IdConversation,
       {
         $push: { message: response },
-        lastMessage: payload.content,
+        lastMessage: response,
       },
       { new: true },
     );
@@ -56,7 +67,8 @@ export class MessageService {
       throw new HttpException('invalid idConversation', HttpStatus.NOT_FOUND);
     const messages = await this.messageModel
       .find({ idConversation: param })
-      .sort({ createdAt: 'desc' });
+      .sort({ createdAt: 'desc' })
+      .populate({ path: 'author', select: '-password -refresh_token' });
 
     if (!messages)
       throw new HttpException('conversation not found', HttpStatus.BAD_REQUEST);

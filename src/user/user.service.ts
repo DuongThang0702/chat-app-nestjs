@@ -15,7 +15,10 @@ export class UserService {
     if (matchedUser)
       throw new HttpException('user has existed', HttpStatus.BAD_REQUEST);
     const password = await hashSomthing(payload.password);
-    const newUser = new this.userModel({ ...payload, password });
+    const newUser = new this.userModel({
+      ...payload,
+      password,
+    });
     return await newUser.save();
   }
 

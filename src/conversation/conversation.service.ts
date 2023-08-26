@@ -1,12 +1,12 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Conversation } from '../utils/schema/';
+import { Conversation, User } from '../utils/schema/';
 import { Model, Types } from 'mongoose';
 import { CreateConversationDto } from './dto';
 import { Services } from 'src/utils/contants';
 import { UserService } from 'src/user/user.service';
 import { AuthenticatedDecode } from 'src/utils/types';
-
+import { MessageService } from 'src/message/message.service';
 @Injectable()
 export class ConversationService {
   constructor(
@@ -14,17 +14,19 @@ export class ConversationService {
     private conversationModel: Model<Conversation>,
     @Inject(Services.USER_SERVICE)
     private readonly userService: UserService,
+    @Inject(Services.MESSAGE_SERVICE)
+    private readonly messageService: MessageService,
   ) {}
 
   async create(author: AuthenticatedDecode, payload: CreateConversationDto) {
-    if (author.email === payload.recipient)
+    if (author.email === payload.email)
       throw new HttpException(
         'Cannot create Conversation with yourself',
         HttpStatus.BAD_REQUEST,
       );
 
     const recipient = await this.userService.findUser({
-      email: payload.recipient,
+      email: payload.email,
     });
 
     if (!recipient)
@@ -42,7 +44,13 @@ export class ConversationService {
       creator: author._id,
       recipient: recipient._id,
     });
-    return await newConversation.save();
+    const response = await newConversation.save();
+    const lastmessage = await this.messageService.create(author, {
+      content: payload.message,
+      IdConversation: response._id.toString(),
+    });
+    response.lastMessage = lastmessage;
+    return response;
   }
 
   async findById(_id: string, user: AuthenticatedDecode) {
@@ -72,7 +80,8 @@ export class ConversationService {
         $or: [{ creator: { _id: user._id } }, { recipient: { _id: user._id } }],
       })
       .populate({ path: 'creator', select: '-password -refresh_token' })
-      .populate({ path: 'recipient', select: '-password -refresh_token' });
+      .populate({ path: 'recipient', select: '-password -refresh_token' })
+      .populate('lastMessage');
 
     if (!findConversation)
       throw new HttpException('conversation not found', HttpStatus.BAD_REQUEST);

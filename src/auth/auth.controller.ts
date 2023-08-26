@@ -63,7 +63,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete()
+  @Delete('logout')
   async logOut(@Req() req, @Res() res) {
     const cookie = req.cookies;
     if (!cookie || !cookie.refreshToken)

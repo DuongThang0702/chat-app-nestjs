@@ -8,6 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ConversationModule } from './conversation/conversation.module';
 import { MessageModule } from './message/message.module';
+import { GatewayModule } from './gateway/gateway.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { MessageModule } from './message/message.module';
     UserModule,
     ConversationModule,
     MessageModule,
+    GatewayModule,
+    EventEmitterModule.forRoot(),
   ],
 })
 export class AppModule {}

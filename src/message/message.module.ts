@@ -19,5 +19,6 @@ import { Services } from 'src/utils/contants';
   ],
   controllers: [MessageController],
   providers: [{ provide: Services.MESSAGE_SERVICE, useClass: MessageService }],
+  exports: [{ provide: Services.MESSAGE_SERVICE, useClass: MessageService }],
 })
 export class MessageModule {}
