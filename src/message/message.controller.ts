@@ -7,6 +7,7 @@ import {
   Body,
   Get,
   Param,
+  HttpStatus,
 } from '@nestjs/common';
 import { Routes, Services } from 'src/utils/contants';
 import { MessageService } from './message.service';
@@ -30,9 +31,8 @@ export class MessageController {
     @Body() payload: createMessage,
   ) {
     const response = await this.messageService.create(req.user, payload);
-    //create message in socket
     this.eventEmitter.emit('message.create', response);
-    return response;
+    return response ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR;
   }
 
   @Get(':idc')

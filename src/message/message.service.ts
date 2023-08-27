@@ -58,7 +58,10 @@ export class MessageService {
       { new: true },
     );
 
-    return response;
+    return response.populate({
+      path: 'author',
+      select: '-password -refresh_token',
+    });
   }
 
   async getMessageFromConversation(param: string) {

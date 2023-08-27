@@ -6,16 +6,15 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
-  cors: {
-    origin: [process.env.URL_CLIENT],
-  },
+  cors: { origin: 'http://localhost:3000' },
 })
 export class MessaginGateway implements OnGatewayConnection {
-  handleConnection(client: any, ...args: any[]) {
-    console.log(client);
+  handleConnection(client: Socket, ...args: any[]) {
+    console.log('New Incoming Connection');
+    client.emit('connected');
   }
   @WebSocketServer()
   server: Server;
@@ -25,11 +24,9 @@ export class MessaginGateway implements OnGatewayConnection {
     console.log('Create Message');
   }
 
-  //listien event
   @OnEvent('message.create')
   handleMessageCreatteEvent(payload: any) {
     console.log('create message');
-    console.log(payload);
     this.server.emit('onMessage', payload);
   }
 }
