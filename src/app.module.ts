@@ -13,7 +13,10 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ envFilePath: ['.env.development'], isGlobal: true }),
+    ConfigModule.forRoot({
+      envFilePath: ['.env.development', '.env'],
+      isGlobal: true,
+    }),
     MongooseModule.forRoot(process.env.URL_MONGOOSE),
     MailerModule.forRoot({
       transport: process.env.MAIL_TRANSPORT,

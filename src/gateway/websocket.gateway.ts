@@ -9,7 +9,12 @@ import {
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
-  cors: { origin: 'http://localhost:3000' },
+  cors: {
+    origin: [
+      'http://localhost:3000',
+      'https://chat-app-nextjs-saas.vercel.app/',
+    ],
+  },
 })
 export class MessaginGateway implements OnGatewayConnection {
   handleConnection(client: Socket, ...args: any[]) {

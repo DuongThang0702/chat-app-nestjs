@@ -81,7 +81,10 @@ export class ConversationService {
       })
       .populate({ path: 'creator', select: '-password -refresh_token' })
       .populate({ path: 'recipient', select: '-password -refresh_token' })
-      .populate('lastMessage');
+      .populate({
+        path: 'lastMessage',
+        populate: { path: 'author', select: '-password -refresh_token' },
+      });
 
     if (!findConversation)
       throw new HttpException('conversation not found', HttpStatus.BAD_REQUEST);
