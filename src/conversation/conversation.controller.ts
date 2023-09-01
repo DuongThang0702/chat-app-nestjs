@@ -27,10 +27,11 @@ export class ConversationController {
     @Req() req: AuthenticatedRequest,
     @Body() createConversationPayload: CreateConversationDto,
   ) {
-    return await this.conversationService.create(
+    const response = await this.conversationService.create(
       req.user,
       createConversationPayload,
     );
+    return response;
   }
 
   @Get()

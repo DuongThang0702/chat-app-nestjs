@@ -15,6 +15,7 @@ import { JwtAuthGuard } from 'src/auth/guards';
 import { AuthenticatedRequest } from 'src/utils/types';
 import { createMessage } from './dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { NotifyService } from 'src/notify/notify.service';
 
 @Controller(Routes.MESSAGE)
 @UseGuards(JwtAuthGuard)
@@ -23,6 +24,7 @@ export class MessageController {
     @Inject(Services.MESSAGE_SERVICE)
     private readonly messageService: MessageService,
     private eventEmitter: EventEmitter2,
+    @Inject(Services.NOTIFY_SERVICE) private notifyService: NotifyService,
   ) {}
 
   @Post()
@@ -31,7 +33,8 @@ export class MessageController {
     @Body() payload: createMessage,
   ) {
     const response = await this.messageService.create(req.user, payload);
-    this.eventEmitter.emit('message.create', response);
+    await this.notifyService.create(response);
+    this.eventEmitter.emit('message.create', response.toObject());
     return response ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR;
   }
 

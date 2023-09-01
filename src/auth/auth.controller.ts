@@ -56,10 +56,9 @@ export class AuthController {
   async current(@Req() req: AuthenticatedRequest) {
     if (!req.user)
       throw new HttpException('invalid cookie', HttpStatus.UNAUTHORIZED);
-    const findUser = await this.userService.findUser({ email: req.user.email });
-    return plainToInstance(CurrentDto, findUser, {
-      excludeExtraneousValues: true,
-    });
+    const findUser = await this.userService.findUser({ _id: req.user._id });
+    const { password, refresh_token, ...rest } = findUser.toObject();
+    return findUser ? rest : 'Something went wrong';
   }
 
   @UseGuards(JwtAuthGuard)

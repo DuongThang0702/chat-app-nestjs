@@ -36,32 +36,30 @@ export class MessageService {
         HttpStatus.BAD_REQUEST,
       );
 
-    // if (
-    //   conversation.creator._id.toString() !== user._id &&
-    //   conversation.recipient._id.toString() !== user._id
-    // )
-    //   throw new HttpException('cannot create message', HttpStatus.BAD_REQUEST);
-
     const newMessage = new this.messageModel({
       author: user._id,
       idConversation: payload.IdConversation,
       content: payload.content,
     });
 
-    const response = await newMessage.save();
+    const saveMessage = await newMessage.save();
     await this.conversationModel.findByIdAndUpdate(
       payload.IdConversation,
       {
-        $push: { message: response },
-        lastMessage: response,
+        $push: { message: saveMessage },
+        lastMessage: saveMessage,
       },
       { new: true },
     );
 
-    return response.populate({
-      path: 'author',
-      select: '-password -refresh_token',
-    });
+    const response = await saveMessage.populate([
+      {
+        path: 'author',
+        select: '-password -refresh_token',
+      },
+      { path: 'idConversation' },
+    ]);
+    return response;
   }
 
   async getMessageFromConversation(param: string) {

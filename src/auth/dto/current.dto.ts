@@ -1,8 +1,9 @@
-import { Expose } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
+import { Types } from 'mongoose';
 
 export class CurrentDto {
   @Expose()
-  _id: string;
+  _id: Types.ObjectId;
   @Expose()
   lastname: string;
   @Expose()
@@ -11,4 +12,8 @@ export class CurrentDto {
   email: string;
   @Expose()
   avatar: string;
+  @Expose()
+  refresh_token: string;
+  @Exclude()
+  password: string;
 }

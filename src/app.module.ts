@@ -10,6 +10,7 @@ import { ConversationModule } from './conversation/conversation.module';
 import { MessageModule } from './message/message.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { NotifyModule } from './notify/notify.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     MessageModule,
     GatewayModule,
     EventEmitterModule.forRoot(),
+    NotifyModule,
   ],
 })
 export class AppModule {}

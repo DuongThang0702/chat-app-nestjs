@@ -1,5 +1,5 @@
 export type ParamFindUser = {
-  id?: string;
+  _id?: string;
   email?: string;
 };
 

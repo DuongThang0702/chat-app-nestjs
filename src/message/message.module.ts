@@ -7,14 +7,19 @@ import {
   ConversationSchema,
   Message,
   MessageSchema,
+  Notify,
+  NotifySchema,
 } from 'src/utils/schema';
 import { Services } from 'src/utils/contants';
+import { NotifyModule } from 'src/notify/notify.module';
 
 @Module({
   imports: [
+    NotifyModule,
     MongooseModule.forFeature([
       { name: Message.name, schema: MessageSchema },
       { name: Conversation.name, schema: ConversationSchema },
+      { name: Notify.name, schema: NotifySchema },
     ]),
   ],
   controllers: [MessageController],

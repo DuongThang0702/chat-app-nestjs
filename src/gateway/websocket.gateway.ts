@@ -1,12 +1,12 @@
 import { OnEvent } from '@nestjs/event-emitter';
 import {
-  MessageBody,
   OnGatewayConnection,
-  SubscribeMessage,
+  OnGatewayDisconnect,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { MessageT } from 'src/utils/types';
 
 @WebSocketGateway({
   cors: {
@@ -16,22 +16,29 @@ import { Server, Socket } from 'socket.io';
     ],
   },
 })
-export class MessaginGateway implements OnGatewayConnection {
+export class MessaginGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   handleConnection(client: Socket, ...args: any[]) {
     console.log('New Incoming Connection');
-    client.emit('connected');
+  }
+
+  handleDisconnect(client: Socket) {
+    console.log('user Disconnect');
   }
   @WebSocketServer()
   server: Server;
 
-  @SubscribeMessage('createMessage')
-  handleCreateMessage(@MessageBody() data: any) {
-    console.log('Create Message');
-  }
+  // @SubscribeMessage('createMessage')
+  // handleCreateMessage() {
+  //   console.log('Create Message');
+  // }
 
   @OnEvent('message.create')
-  handleMessageCreatteEvent(payload: any) {
+  handleMessageCreatteEvent(payload: MessageT) {
     console.log('create message');
+    const { _id, updatedAt, idConversation, ...rest } = payload;
     this.server.emit('onMessage', payload);
+    this.server.emit('onNotify', rest);
   }
 }

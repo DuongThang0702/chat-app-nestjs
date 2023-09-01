@@ -84,7 +84,8 @@ export class ConversationService {
       .populate({
         path: 'lastMessage',
         populate: { path: 'author', select: '-password -refresh_token' },
-      });
+      })
+      .sort({ lastMessage: -1 });
 
     if (!findConversation)
       throw new HttpException('conversation not found', HttpStatus.BAD_REQUEST);
