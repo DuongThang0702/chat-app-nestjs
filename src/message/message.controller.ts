@@ -32,7 +32,8 @@ export class MessageController {
     @Req() req: AuthenticatedRequest,
     @Body() payload: createMessage,
   ) {
-    const response = await this.messageService.create(req.user, payload);
+    const { user } = req;
+    const response = await this.messageService.create(user, payload);
     await this.notifyService.create(response);
     this.eventEmitter.emit('message.create', response.toObject());
     return response ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR;

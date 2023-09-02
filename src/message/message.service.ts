@@ -73,7 +73,6 @@ export class MessageService {
 
     if (!messages)
       throw new HttpException('conversation not found', HttpStatus.BAD_REQUEST);
-
     return messages;
   }
 }

@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
   Inject,
+  Patch,
   Post,
   Query,
   Req,
@@ -28,7 +29,23 @@ export class NotifyController {
     @Query() query: Partial<QueryParamsNotify>,
   ) {
     const { user } = req;
-    if (!user) new HttpException('login required', HttpStatus.UNAUTHORIZED);
-    return await this.notifyService.find(user, query);
+    const response = await this.notifyService.find(user, query);
+    return response;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch()
+  async checkNotify(
+    @Req() req: AuthenticatedRequest,
+    @Body() param: { status: boolean; idConversation: string },
+  ) {
+    const { user } = req;
+    const response = await this.notifyService.checkNotify(
+      user,
+      param.status,
+      param.idConversation,
+    );
+
+    return response;
   }
 }

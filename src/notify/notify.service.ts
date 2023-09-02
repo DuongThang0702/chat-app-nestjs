@@ -19,48 +19,84 @@ export class NotifyService {
       payload.author,
       payload.idConversation.recipient,
     );
+
     if (!check) {
-      const newNotify = new this.notifyModel({
-        author: payload.author,
-        recipient: payload.idConversation.recipient,
-        content: payload.content,
-      });
-      const response = await newNotify.save();
-      return response.populate('recipient');
+      if (
+        payload.author._id.toString() ===
+        payload.idConversation.creator.toString()
+      ) {
+        const newNotify = new this.notifyModel({
+          author: payload.author._id,
+          recipient: payload.idConversation.recipient,
+          content: payload.content,
+          idConversation: payload.idConversation._id,
+        });
+        const response = await newNotify.save();
+        return response;
+      }
+      if (
+        payload.author._id.toString() ===
+        payload.idConversation.recipient.toString()
+      ) {
+        const newNotify = new this.notifyModel({
+          author: payload.author._id,
+          recipient: payload.idConversation.creator,
+          content: payload.content,
+          idConversation: payload.idConversation._id,
+        });
+        const response = await newNotify.save();
+        return response;
+      }
     } else {
-      const response = await this.findOneAndUpdate(check._id.toString(), {
-        content: payload.content,
-      });
+      const response = await this.notifyModel.findByIdAndUpdate(
+        check._id.toString(),
+        {
+          isChecked: false,
+          content: payload.content,
+          idConversation: payload.idConversation._id,
+        },
+      );
+      // const log = await response.populate(['recipient', 'author']);
+      // console.log(log);
+
       return response;
     }
   }
 
   async find(user: AuthenticatedDecode, query: Partial<QueryParamsNotify>) {
     const findUser = await this.userService.findUser({ _id: user._id });
-    if (!findUser) new HttpException('User not found!', HttpStatus.NOT_FOUND);
+    if (!findUser)
+      throw new HttpException('User not found!', HttpStatus.NOT_FOUND);
     const response = await this.notifyModel
-      .find({ recipient: user._id })
+      .find({ $and: [{ recipient: user._id }, { isChecked: false }] })
       .limit(query.limit ? query.limit : 5)
-      .sort(query.sort ? query.sort : { createdAt: -1 });
+      .sort(query.sort ? query.sort : { createdAt: -1 })
+      .populate({ path: 'author', select: '-password -refresh_token' });
     if (!response)
       new HttpException(
         'Something went wrong!',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
-
     return response;
   }
 
-  async findOneAndUpdate(idNotify: string, params: {}) {
-    return await this.notifyModel.findByIdAndUpdate(idNotify, params);
+  async checkNotify(
+    user: AuthenticatedDecode,
+    updateStatus: boolean,
+    idConversation: string,
+  ) {
+    const notify = await this.notifyModel.findOne({
+      $and: [{ recipient: user._id }, { idConversation }],
+    });
+    if (!notify) throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+    notify.isChecked = updateStatus;
+    return await notify.save();
   }
 
   async exsited(author: UserDocument, recipient: UserDocument) {
     return await this.notifyModel.findOne({
-      $or: [
-        { author: { _id: author._id }, recipient: { _id: recipient } },
-        { author: { _id: recipient }, recipient: { _id: author._id } },
-      ],
+      author: { _id: author._id },
+      recipient: { _id: recipient },
     });
   }
 }
